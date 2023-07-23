@@ -2,11 +2,11 @@
 
 /**
  * get_width - Calculates the width for printing
- * @format: Formatted string in which to print the arguments
- * @i: Pointer to the index of the current character in the format string
- * @list: List of arguments to be printed
+ * @format: Formatted string in which to print the arguments.
+ * @i: List of arguments to be printed.
+ * @list: list of arguments.
  *
- * Return: Width
+ * Return: width.
  */
 int get_width(const char *format, int *i, va_list list)
 {
