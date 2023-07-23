@@ -1,5 +1,6 @@
-[O
 #include "main.h"
+
+void print_buffer(char buffer[], int *buff_ind);
 
 /**
  * _printf - Printf function
@@ -8,7 +9,7 @@
  */
 int _printf(const char *format, ...)
 {
-	int i, printed_chars = 0;
+	int i, printed = 0, printed_chars = 0;
 	int flags, width, precision, size, buff_ind = 0;
 	va_list list;
 	char buffer[BUFF_SIZE];
@@ -35,13 +36,11 @@ int _printf(const char *format, ...)
 			precision = get_precision(format, &i, list);
 			size = get_size(format, &i);
 			++i;
-			printed_chars += handle_print(format, &i, list, buffer,
-						      flags, width, precision, size);
-			if (printed_chars == -1)
-			{
-				va_end(list);
+			printed = handle_print(format, &i, list, buffer,
+				flags, width, precision, size);
+			if (printed == -1)
 				return (-1);
-			}
+			printed_chars += printed;
 		}
 	}
 
@@ -54,8 +53,8 @@ int _printf(const char *format, ...)
 
 /**
  * print_buffer - Prints the contents of the buffer if it exists
- * @buffer: Array of characters
- * @buff_ind: Index at which to add the next character, represents the length.
+ * @buffer: Array of chars
+ * @buff_ind: Index at which to add the next char, represents the length.
  */
 void print_buffer(char buffer[], int *buff_ind)
 {
