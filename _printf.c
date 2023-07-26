@@ -1,65 +1,89 @@
+#include <stdio.h>
+#include <stdarg.h>
+#include <unistd.h>
 #include "main.h"
 
-void print_buffer(char buffer[], int *buff_ind);
+#define BUFFER_SIZE 1024
 
-/**
- * _printf - Printf function
- * @format: Format string.
- * Return: Number of printed characters.
- */
 int _printf(const char *format, ...)
 {
-	int i, printed = 0, printed_chars = 0;
-	int flags, width, precision, size, buff_ind = 0;
-	va_list list;
-	char buffer[BUFF_SIZE];
+	int printed_chars = 0;
+	char buffer[BUFFER_SIZE];
+	int buffer_index = 0;
+	va_list args;
+	va_start(args, format);
 
-	if (format == NULL)
-		return (-1);
-
-	va_start(list, format);
-
-	for (i = 0; format && format[i] != '\0'; i++)
+	while (*format)
 	{
-		if (format[i] != '%')
+		if (*format == '%')
 		{
-			buffer[buff_ind++] = format[i];
-			if (buff_ind == BUFF_SIZE)
-				print_buffer(buffer, &buff_ind);
-			printed_chars++;
+			format++;
+			switch (*format)
+			{
+				case 'r':
+					printed_chars += handle_reverse(&args, buffer, &buffer_index);
+					break;
+				case 'R':
+					printed_chars += handle_rot13(&args, buffer, &buffer_index);
+					break;
+				case 'S':
+					printed_chars += handle_special_string(&args, buffer, &buffer_index);
+					break;
+				case 'b':
+					printed_chars += handle_binary(&args, buffer, &buffer_index);
+					break;
+				case 'u':
+					printed_chars += handle_unsigned(&args, buffer, &buffer_index);
+					break;
+				case 'o':
+					printed_chars += handle_octal(&args, buffer, &buffer_index);
+					break;
+				case 'x':
+					printed_chars += handle_hexadecimal(&args, buffer, &buffer_index);
+					break;
+				case 'X':
+					printed_chars += hexadecimal_uppercase(&args, buffer, &buffer_index);
+					break;
+				case '%':
+					if (buffer_index == BUFFER_SIZE - 1)
+					{
+						buffer[buffer_index] = '\0';
+						printed_chars += write(1, buffer, buffer_index);
+						buffer_index = 0;
+					}
+					buffer[buffer_index++] = '%';
+					printed_chars++;
+					break;
+				default:
+					if (buffer_index == BUFFER_SIZE - 1)
+					{
+						buffer[buffer_index] = '\0';
+						printed_chars += write(1, buffer, buffer_index);
+						buffer_index = 0;
+					}
+					buffer[buffer_index++] = *format;
+					printed_chars++;
+					break;
+			}
 		}
 		else
 		{
-			print_buffer(buffer, &buff_ind);
-			flags = get_flags(format, &i);
-			width = get_width(format, &i, list);
-			precision = get_precision(format, &i, list);
-			size = get_size(format, &i);
-			++i;
-			printed = handle_print(format, &i, list, buffer,
-				flags, width, precision, size);
-			if (printed == -1)
-				return (-1);
-			printed_chars += printed;
+			if (buffer_index == BUFFER_SIZE - 1)
+			{
+				buffer[buffer_index] = '\0';
+				printed_chars += write(1, buffer, buffer_index);
+				buffer_index = 0;
+			}
+			buffer[buffer_index++] = *format;
+			printed_chars++;
 		}
+		format++;
 	}
-
-	print_buffer(buffer, &buff_ind);
-
-	va_end(list);
-
+	if (buffer_index > 0)
+	{
+		buffer[buffer_index] = '\0';
+		printed_chars += write(1, buffer, buffer_index);
+	}
+	va_end(args);
 	return (printed_chars);
-}
-
-/**
- * print_buffer - Prints the contents of the buffer if it exists
- * @buffer: Array of chars
- * @buff_ind: Index at which to add the next char, represents the length.
- */
-void print_buffer(char buffer[], int *buff_ind)
-{
-	if (*buff_ind > 0)
-		write(1, &buffer[0], *buff_ind);
-
-	*buff_ind = 0;
 }
